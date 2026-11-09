@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="dark">
+<title>Métricas · Radar Geek</title>
+<link rel="icon" href="../logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--fondo:#0b0e12;--tarjeta:#141920;--borde:#222a35;--texto:#f2f4f7;--suave:#9aa3af;--lima:#c6ff3d;--rojo:#ff6b6b;--azul:#7aa7ff}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--fondo);color:var(--texto);font:15px/1.45 Montserrat,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+main{max-width:720px;margin:0 auto;padding:14px 14px 40px}
+header{display:flex;align-items:center;gap:10px;margin:4px 0 14px}
+header img{width:38px;height:38px;border-radius:50%}
+header h1{font-size:19px;font-weight:900;margin:0;letter-spacing:-.3px}
+header h1 span{color:var(--lima)}
+header .act{margin-left:auto;text-align:right;font-size:11.5px;color:var(--suave)}
+header button{background:none;border:1px solid var(--borde);color:var(--texto);border-radius:9px;padding:5px 9px;font:inherit;font-size:12px;margin-top:3px}
+.rejilla{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tarjeta{background:var(--tarjeta);border:1px solid var(--borde);border-radius:16px;padding:13px 14px}
+.dato .etq{font-size:12px;color:var(--suave);font-weight:700}
+.dato .num{font-size:27px;font-weight:900;letter-spacing:-.5px;margin-top:2px}
+.dato .cambio{font-size:12px;font-weight:700;margin-top:1px}
+.sube{color:var(--lima)}.baja{color:var(--rojo)}.igual{color:var(--suave)}
+h2{font-size:14px;font-weight:800;margin:20px 2px 8px;color:var(--texto)}
+h2 small{color:var(--suave);font-weight:600;font-size:12px}
+.grafica{position:relative;height:210px}
+.embudo .paso{display:flex;align-items:center;gap:10px;margin:7px 0}
+.embudo .barra{height:30px;border-radius:8px;background:var(--lima);color:#0b0c10;font-weight:800;font-size:13px;display:flex;align-items:center;padding:0 10px;white-space:nowrap;min-width:fit-content}
+.embudo .paso:nth-child(2) .barra{background:#a6d93a}.embudo .paso:nth-child(3) .barra{background:#7fae2a}
+.embudo .etq{font-size:12.5px;color:var(--suave)}
+.consejos p{margin:0 0 10px;padding-left:14px;position:relative}
+.consejos p::before{content:'';position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:var(--lima)}
+.consejos p:last-child{margin:0}
+.detalle{display:none;margin-top:10px}
+.detalle.ver{display:flex;gap:12px}
+.detalle img{width:72px;height:128px;object-fit:cover;border-radius:10px;background:var(--borde);flex:none}
+.detalle b{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:4px}
+.detalle .nums{font-size:13px;color:var(--suave)}
+.detalle a{color:var(--lima);font-weight:700;font-size:13px}
+.lista .fila{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--borde);font-size:13px}
+.lista .fila:first-child{border-top:0;padding-top:0}
+.lista .fila .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lista .fila .v{font-weight:800;white-space:nowrap}
+.nota{font-size:12.5px;color:var(--suave)}
+.aviso{text-align:center;color:var(--suave);padding:60px 20px}
+.cargando{width:26px;height:26px;border:3px solid var(--borde);border-top-color:var(--lima);border-radius:50%;animation:g 1s linear infinite;margin:0 auto 14px}
+@keyframes g{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<main id="app"><div class="aviso"><div class="cargando"></div>Pidiendo tus números…</div></main>
+<script>
+// Mini app de Telegram: pide las métricas a la función "metricas" de Supabase con la firma de Telegram (initData),
+// así solo tú las ves. La página no guarda datos: está pública en GitHub Pages sin ningún número.
+const FUNCION = 'https://plsdsakcxjoizbdvatbo.supabase.co/functions/v1/metricas';
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#0b0e12'); tg.setBackgroundColor('#0b0e12'); } catch (e) {} }
+
+const app = document.getElementById('app');
+const miles = (n) => (n == null ? '–' : Math.round(n).toLocaleString('es-MX'));
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const horaMx = (iso) => new Date(new Date(iso).getTime() - 6 * 3600000);
+const fechaCorta = (iso) => horaMx(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+const abrir = (url) => (tg && tg.openLink ? tg.openLink(url) : window.open(url, '_blank'));
+
+function cambio(actual, antes, sufijo) {
+  if (actual == null || !antes) return '<div class="cambio igual">sin semana anterior</div>';
+  const p = Math.round(((actual - antes) / antes) * 100);
+  const c = p > 0 ? 'sube' : p < 0 ? 'baja' : 'igual';
+  return '<div class="cambio ' + c + '">' + (p > 0 ? '▲ ' : p < 0 ? '▼ ' : '') + Math.abs(p) + '% vs semana pasada' + (sufijo || '') + '</div>';
+}
+
+async function cargar(refrescar) {
+  const local = new URLSearchParams(location.search).get('datos');
+  let url = FUNCION + (refrescar ? '?refrescar=1' : '');
+  const op = { headers: { 'x-telegram-init-data': (tg && tg.initData) || '' } };
+  // Solo para probar la página en la PC: datos de un archivo local
+  if (local && /^(localhost|127\.0\.0\.1)$/.test(location.hostname)) url = local;
+  else if (!tg || !tg.initData) { app.innerHTML = '<div class="aviso">Ábrelo desde el botón <b>Métricas</b> de tu bot de Telegram.</div>'; return; }
+  try {
+    const r = await fetch(url, op);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || r.status);
+    pintar(d);
+  } catch (e) {
+    app.innerHTML = '<div class="aviso">No pude traer los números.<br><span class="nota">' + esc(e.message) + '</span><br><br><button onclick="cargar(true)">Reintentar</button></div>';
+  }
+}
+
+const graficas = [];
+function pintar(d) {
+  graficas.forEach((g) => g.destroy());
+  graficas.length = 0;
+  const s = d.semana, a = d.anterior;
+  const reels = d.reels.filter((r) => r.tipo === 'reel' && r.vistas != null).sort((x, y) => new Date(x.fecha) - new Date(y.fecha));
+  const conRet = reels.filter((r) => r.retencion != null);
+  const visto = conRet.length >= 2;
+  const promSeg = reels.filter((r) => r.vistoSeg != null);
+  const segProm = promSeg.length ? Math.round((promSeg.reduce((t, r) => t + r.vistoSeg, 0) / promSeg.length) * 10) / 10 : null;
+  const hace = Math.round((Date.now() - new Date(d.actualizado)) / 60000);
+  const e = d.embudo || {};
+  const yt = d.youtube && !d.youtube.error ? d.youtube : null;
+
+  app.innerHTML =
+    '<header><img src="../logo.png" alt=""><h1>RADAR <span>GEEK</span></h1><div class="act">' + (hace < 1 ? 'recién actualizado' : 'hace ' + hace + ' min') + '<br><button onclick="cargar(true)">Actualizar</button></div></header>' +
+    '<div class="rejilla">' +
+      '<div class="tarjeta dato"><div class="etq">Vistas · 7 días</div><div class="num">' + miles(s.vistas) + '</div>' + cambio(s.vistas, a.vistas) + '</div>' +
+      '<div class="tarjeta dato"><div class="etq">Seguidores</div><div class="num">' + miles(d.cuenta.seguidores) + '</div><div class="cambio ' + (e.nuevos > 0 ? 'sube' : 'igual') + '">' + (e.nuevos == null ? 'la tendencia se llena día a día' : (e.nuevos >= 0 ? '+' : '') + e.nuevos + ' en 7 días') + '</div></div>' +
+      '<div class="tarjeta dato"><div class="etq">' + (visto ? '% del reel visto' : 'Segundos vistos') + '</div><div class="num">' + (visto ? s.retencion + '%' : (segProm ?? '–') + ' s') + '</div><div class="cambio igual">' + (visto ? 'promedio de la semana' : 'promedio por reel') + '</div></div>' +
+      '<div class="tarjeta dato"><div class="etq">Compartidos · 7 días</div><div class="num">' + miles(s.compartidos) + '</div>' + cambio(s.compartidos, a.compartidos) + '</div>' +
+    '</div>' +
+    '<h2>Embudo de seguidores <small>· 7 días</small></h2><div class="tarjeta embudo" id="embudo"></div>' +
+    '<h2>Vistas por reel <small>· toca una barra</small></h2><div class="tarjeta"><div class="grafica"><canvas id="gVistas"></canvas></div><div class="detalle" id="detalle"></div></div>' +
+    '<h2>' + (visto ? '% del reel que vio la gente' : 'Segundos que vio la gente') + ' <small>· el gancho se mide aquí</small></h2><div class="tarjeta"><div class="grafica"><canvas id="gRet"></canvas></div></div>' +
+    '<h2>Mejor hora <small>· vistas promedio</small></h2><div class="tarjeta"><div class="grafica" style="height:170px"><canvas id="gHora"></canvas></div></div>' +
+    '<h2>Seguidores</h2><div class="tarjeta"><div class="grafica" style="height:160px"><canvas id="gSeg"></canvas></div>' + (d.seguidores.length < 3 ? '<p class="nota">La gráfica se llena con un punto por día.</p>' : '') + '</div>' +
+    '<h2>Instagram contra YouTube <small>· 30 días</small></h2><div class="tarjeta" id="yt"></div>' +
+    '<h2>Qué mejorar</h2><div class="tarjeta consejos">' + (d.consejos && d.consejos.length ? d.consejos.map((c) => '<p>' + esc(c) + '</p>').join('') : '<p class="nota">Se genera una vez al día con tus números.</p>') + '</div>' +
+    '<h2>Lo más visto <small>· 30 días</small></h2><div class="tarjeta lista">' +
+      [...reels].sort((x, y) => y.vistas - x.vistas).slice(0, 8).map((r) => '<div class="fila" data-link="' + esc(r.permalink) + '"><span class="t">' + esc(r.gancho || r.titulo) + '</span><span class="v">' + miles(r.vistas) + '</span></div>').join('') +
+    '</div>';
+
+  // Embudo: barras que se angostan con el % de cada paso
+  const pasos = [['cuentas alcanzadas', e.alcance], ['abrieron tu perfil', e.perfil], ['te siguieron', e.nuevos]];
+  const maximo = e.alcance || 1;
+  document.getElementById('embudo').innerHTML = pasos.map(([n, v], i) => {
+    const ancho = v == null ? 0 : Math.max(8, Math.round((Math.log10(Math.max(v, 1) + 1) / Math.log10(maximo + 1)) * 100));
+    const pct = i && v != null && pasos[i - 1][1] ? ' · ' + ((v / pasos[i - 1][1]) * 100).toLocaleString('es-MX', { maximumFractionDigits: 2 }) + '%' : '';
+    return '<div class="paso"><div class="barra" style="width:' + ancho + '%">' + (v == null ? '–' : miles(v)) + '</div><span class="etq">' + n + pct + '</span></div>';
+  }).join('') + (e.alcance && e.perfil != null && e.perfil / e.alcance < 0.01 ? '<p class="nota">Menos de 1 de cada 100 personas que ven un reel abre tu perfil: ahí está lo que hay que mejorar.</p>' : '');
+
+  Chart.defaults.color = '#9aa3af';
+  Chart.defaults.font.family = 'Montserrat, system-ui, sans-serif';
+  Chart.defaults.borderColor = '#222a35';
+  const etiquetas = reels.map((r) => fechaCorta(r.fecha));
+  const corto = (v) => (v >= 1000 ? (v / 1000).toLocaleString('es-MX', { maximumFractionDigits: 1 }) + 'k' : v);
+  const comun = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 6 } }, y: { beginAtZero: true, ticks: { callback: corto } } } };
+
+  graficas.push(new Chart(document.getElementById('gVistas'), {
+    type: 'bar',
+    data: { labels: etiquetas, datasets: [{ data: reels.map((r) => r.vistas), backgroundColor: reels.map((r) => (r.voz === 'propia' ? '#7aa7ff' : '#c6ff3d')), borderRadius: 5 }] },
+    options: { ...comun, interaction: { mode: 'index', intersect: false }, onClick: (_, el) => el.length && detalle(reels[el[0].index]) },
+  }));
+  const medida = (r) => (visto ? r.retencion : r.vistoSeg);
+  const ret = reels.filter((r) => medida(r) != null);
+  const prom = ret.length ? ret.reduce((t, r) => t + medida(r), 0) / ret.length : 0;
+  graficas.push(new Chart(document.getElementById('gRet'), {
+    data: {
+      labels: ret.map((r) => fechaCorta(r.fecha)),
+      datasets: [
+        { type: 'bar', data: ret.map(medida), backgroundColor: ret.map((r) => (medida(r) >= prom ? '#c6ff3d' : '#4a5563')), borderRadius: 5 },
+        { type: 'line', data: ret.map(() => prom), borderColor: '#ff6b6b', borderDash: [5, 4], pointRadius: 0, borderWidth: 2 },
+      ],
+    },
+    options: { ...comun, scales: { ...comun.scales, y: { beginAtZero: true, ticks: { callback: (v) => v + (visto ? '%' : ' s') } } } },
+  }));
+  // Hora del centro de México de cada reel: alrededor de las 2 o de las 6, o a otra hora
+  const grupos = { '2 pm': [], '6 pm': [], 'otras': [] };
+  reels.forEach((r) => { const h = horaMx(r.fecha).getUTCHours() + horaMx(r.fecha).getUTCMinutes() / 60; grupos[Math.abs(h - 14) <= 1 ? '2 pm' : Math.abs(h - 18) <= 1 ? '6 pm' : 'otras'].push(r.vistas); });
+  const conHora = Object.entries(grupos).filter(([, l]) => l.length);
+  graficas.push(new Chart(document.getElementById('gHora'), {
+    type: 'bar',
+    data: { labels: conHora.map(([n, l]) => n + ' (' + l.length + ')'), datasets: [{ data: conHora.map(([, l]) => l.reduce((t, v) => t + v, 0) / l.length), backgroundColor: '#c6ff3d', borderRadius: 6 }] },
+    options: { ...comun, indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { callback: corto } }, y: { grid: { display: false } } } },
+  }));
+  graficas.push(new Chart(document.getElementById('gSeg'), {
+    type: 'line',
+    data: { labels: d.seguidores.map((x) => new Date(x.fecha + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })), datasets: [{ data: d.seguidores.map((x) => x.n), borderColor: '#c6ff3d', backgroundColor: 'rgba(198,255,61,.12)', fill: true, tension: 0.3, pointRadius: 3 }] },
+    options: { ...comun, scales: { ...comun.scales, y: { beginAtZero: false, ticks: { precision: 0 } } } },
+  }));
+
+  // Instagram contra YouTube en 30 días
+  const ig30 = reels.reduce((t, r) => t + r.vistas, 0);
+  const ytCaja = document.getElementById('yt');
+  if (!yt) ytCaja.innerHTML = '<p class="nota">' + (d.youtube && d.youtube.error ? 'YouTube: ' + esc(d.youtube.error) : 'Para ver YouTube aquí, falta darle su permiso a la nube (npm run nube:secretos en la PC de casa).') + '</p>';
+  else {
+    const yt30 = yt.videos.reduce((t, v) => t + v.vistas, 0);
+    ytCaja.innerHTML = '<div class="grafica" style="height:120px"><canvas id="gYt"></canvas></div><p class="nota">' + yt.suscriptores + ' suscriptores · ' + yt.videos.length + ' Shorts públicos</p>' +
+      yt.videos.sort((x, y) => y.vistas - x.vistas).slice(0, 3).map((v) => '<div class="lista"><div class="fila"><span class="t">' + esc(v.titulo) + '</span><span class="v">' + miles(v.vistas) + '</span></div></div>').join('');
+    graficas.push(new Chart(document.getElementById('gYt'), {
+      type: 'bar',
+      data: { labels: ['Instagram', 'YouTube'], datasets: [{ data: [ig30, yt30], backgroundColor: ['#c6ff3d', '#ff6b6b'], borderRadius: 6 }] },
+      options: { ...comun, indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { callback: corto } }, y: { grid: { display: false } } } },
+    }));
+  }
+
+  app.querySelectorAll('[data-link]').forEach((f) => f.addEventListener('click', () => abrir(f.dataset.link)));
+}
+
+function detalle(r) {
+  const c = document.getElementById('detalle');
+  c.className = 'detalle ver';
+  c.innerHTML = (r.miniatura ? '<img src="' + esc(r.miniatura) + '" alt="">' : '') +
+    '<div><b>' + esc(r.gancho || r.titulo) + '</b><div class="nums">' + fechaCorta(r.fecha) + ' · ' + miles(r.vistas) + ' vistas · ' + miles(r.likes) + ' likes · ' + miles(r.compartidos) + ' compartidos · ' + miles(r.guardados) + ' guardados<br>' +
+    (r.vistoSeg != null ? r.vistoSeg + ' s vistos' + (r.retencion != null ? ' de ' + r.duracion + ' s (' + r.retencion + '%)' : '') : '') + (r.voz === 'propia' ? ' · con tu voz' : '') + '</div>' +
+    '<a href="#" id="abrirReel">Ver en Instagram →</a></div>';
+  document.getElementById('abrirReel').addEventListener('click', (ev) => { ev.preventDefault(); abrir(r.permalink); });
+}
+
+cargar(false);
+</script>
+</body>
+</html>
