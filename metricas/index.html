@@ -12,44 +12,67 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-:root{--fondo:#0b0e12;--tarjeta:#141920;--borde:#222a35;--texto:#f2f4f7;--suave:#9aa3af;--lima:#c6ff3d;--rojo:#ff6b6b;--azul:#7aa7ff}
+:root{--fondo:#0b0e12;--tarjeta:#141920;--borde:#222a35;--texto:#f2f4f7;--suave:#9aa3af;--lima:#c6ff3d;--rojo:#ff6b6b;--ig:#c6ff3d;--yt:#ff6b6b;--tt:#5ee0e6}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--fondo);color:var(--texto);font:15px/1.45 Montserrat,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 main{max-width:720px;margin:0 auto;padding:14px 14px 40px}
-header{display:flex;align-items:center;gap:10px;margin:4px 0 14px}
+header{display:flex;align-items:center;gap:10px;margin:4px 0 10px}
 header img{width:38px;height:38px;border-radius:50%}
 header h1{font-size:19px;font-weight:900;margin:0;letter-spacing:-.3px}
 header h1 span{color:var(--lima)}
 header .act{margin-left:auto;text-align:right;font-size:11.5px;color:var(--suave)}
-header button{background:none;border:1px solid var(--borde);color:var(--texto);border-radius:9px;padding:5px 9px;font:inherit;font-size:12px;margin-top:3px}
+button{font:inherit;cursor:pointer}
+header button{background:none;border:1px solid var(--borde);color:var(--texto);border-radius:9px;padding:5px 9px;font-size:12px;margin-top:3px}
+.filtros{position:sticky;top:0;z-index:5;background:var(--fondo);padding:8px 0 10px;margin:0 0 6px;display:flex;flex-direction:column;gap:7px;border-bottom:1px solid var(--borde)}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;background:var(--tarjeta);border:1px solid var(--borde);color:var(--suave);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:6px}
+.chip.on{background:var(--texto);color:#0b0c10;border-color:var(--texto)}
+.punto{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
 .rejilla{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .tarjeta{background:var(--tarjeta);border:1px solid var(--borde);border-radius:16px;padding:13px 14px}
 .dato .etq{font-size:12px;color:var(--suave);font-weight:700}
-.dato .num{font-size:27px;font-weight:900;letter-spacing:-.5px;margin-top:2px}
+.dato .num{font-size:26px;font-weight:900;letter-spacing:-.5px;margin-top:2px}
 .dato .cambio{font-size:12px;font-weight:700;margin-top:1px}
+.dato .desglose{font-size:11.5px;color:var(--suave);margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 9px}
+.dato .desglose span{display:inline-flex;align-items:center;gap:4px}
 .sube{color:var(--lima)}.baja{color:var(--rojo)}.igual{color:var(--suave)}
-h2{font-size:14px;font-weight:800;margin:20px 2px 8px;color:var(--texto)}
+h2{font-size:14px;font-weight:800;margin:22px 2px 8px;color:var(--texto)}
 h2 small{color:var(--suave);font-weight:600;font-size:12px}
 .grafica{position:relative;height:210px}
+.leyenda{display:flex;gap:12px;font-size:12px;color:var(--suave);margin-top:8px;flex-wrap:wrap}
+.leyenda span{display:inline-flex;align-items:center;gap:5px}
 .embudo .paso{display:flex;align-items:center;gap:10px;margin:7px 0}
 .embudo .barra{height:30px;border-radius:8px;background:var(--lima);color:#0b0c10;font-weight:800;font-size:13px;display:flex;align-items:center;padding:0 10px;white-space:nowrap;min-width:fit-content}
 .embudo .paso:nth-child(2) .barra{background:#a6d93a}.embudo .paso:nth-child(3) .barra{background:#7fae2a}
 .embudo .etq{font-size:12.5px;color:var(--suave)}
-.consejos p{margin:0 0 10px;padding-left:14px;position:relative}
-.consejos p::before{content:'';position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:var(--lima)}
-.consejos p:last-child{margin:0}
+.consejo{padding:12px 0;border-top:1px solid var(--borde)}
+.consejo:first-child{border-top:0;padding-top:0}
+.consejo:last-child{padding-bottom:0}
+.consejo b{display:block;font-size:14.5px;line-height:1.35}
+.consejo p{margin:5px 0 0;font-size:13px;color:var(--suave)}
+.consejo .prueba{margin-top:7px;font-size:12.5px;background:rgba(198,255,61,.08);border:1px solid rgba(198,255,61,.25);color:var(--texto);border-radius:9px;padding:6px 9px}
+.consejo .prueba em{font-style:normal;color:var(--lima);font-weight:800}
+.hallazgo{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--borde);font-size:13.5px}
+.hallazgo:first-child{border-top:0;padding-top:0}
+.hallazgo:last-child{padding-bottom:0}
+.hallazgo .ico{flex:none;width:26px;height:26px;border-radius:8px;background:#1d242e;display:grid;place-items:center;font-size:14px}
 .detalle{display:none;margin-top:10px}
 .detalle.ver{display:flex;gap:12px}
 .detalle img{width:72px;height:128px;object-fit:cover;border-radius:10px;background:var(--borde);flex:none}
 .detalle b{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:4px}
 .detalle .nums{font-size:13px;color:var(--suave)}
 .detalle a{color:var(--lima);font-weight:700;font-size:13px}
-.lista .fila{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--borde);font-size:13px}
-.lista .fila:first-child{border-top:0;padding-top:0}
+.lista .fila{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--borde);font-size:13px;cursor:pointer}
+.lista .fila:first-of-type{border-top:0}
 .lista .fila .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lista .fila .v{font-weight:800;white-space:nowrap}
-.nota{font-size:12.5px;color:var(--suave)}
+.lista .fila .f{color:var(--suave);font-size:11.5px;white-space:nowrap}
+.lista .fila .v{font-weight:800;white-space:nowrap;min-width:52px;text-align:right}
+.lista .chips{margin-bottom:8px}
+.nota{font-size:12.5px;color:var(--suave);margin:8px 0 0}
+.nota:first-child{margin-top:0}
 .aviso{text-align:center;color:var(--suave);padding:60px 20px}
+.aviso button{background:none;border:1px solid var(--borde);color:var(--texto);border-radius:9px;padding:7px 12px}
 .cargando{width:26px;height:26px;border:3px solid var(--borde);border-top-color:var(--lima);border-radius:50%;animation:g 1s linear infinite;margin:0 auto 14px}
 @keyframes g{to{transform:rotate(360deg)}}
 </style>
@@ -58,25 +81,35 @@ h2 small{color:var(--suave);font-weight:600;font-size:12px}
 <main id="app"><div class="aviso"><div class="cargando"></div>Pidiendo tus números…</div></main>
 <script>
 // Mini app de Telegram: pide las métricas a la función "metricas" de Supabase con la firma de Telegram (initData),
-// así solo tú las ves. La página no guarda datos: está pública en GitHub Pages sin ningún número.
+// así solo tú las ves. La página no guarda datos: está pública en GitHub Pages sin ningún número. La función manda
+// 90 días de las tres redes y aquí se filtran por periodo y por red.
 const FUNCION = 'https://plsdsakcxjoizbdvatbo.supabase.co/functions/v1/metricas';
 const tg = window.Telegram && window.Telegram.WebApp;
 if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#0b0e12'); tg.setBackgroundColor('#0b0e12'); } catch (e) {} }
 
 const app = document.getElementById('app');
+const DIA = 86400000, MX = 6 * 3600000;
+const REDES = { ig: { nombre: 'Instagram', color: '#c6ff3d' }, yt: { nombre: 'YouTube', color: '#ff6b6b' }, tt: { nombre: 'TikTok', color: '#5ee0e6' } };
 const miles = (n) => (n == null ? '–' : Math.round(n).toLocaleString('es-MX'));
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const horaMx = (iso) => new Date(new Date(iso).getTime() - 6 * 3600000);
+const horaMx = (iso) => new Date(new Date(iso).getTime() - MX);
+const diaMx = (t) => new Date(t - MX).toISOString().slice(0, 10);
 const fechaCorta = (iso) => horaMx(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-const abrir = (url) => (tg && tg.openLink ? tg.openLink(url) : window.open(url, '_blank'));
+const abrir = (url) => url && (tg && tg.openLink ? tg.openLink(url) : window.open(url, '_blank'));
+const suma = (l, k) => l.reduce((a, v) => a + (v[k] || 0), 0);
+const prom = (l) => (l.length ? l.reduce((a, b) => a + b, 0) / l.length : null);
+const punto = (red) => '<i class="punto" style="background:' + REDES[red].color + '"></i>';
 
-function cambio(actual, antes, sufijo) {
-  if (actual == null || !antes) return '<div class="cambio igual">sin semana anterior</div>';
-  const p = Math.round(((actual - antes) / antes) * 100);
-  const c = p > 0 ? 'sube' : p < 0 ? 'baja' : 'igual';
-  return '<div class="cambio ' + c + '">' + (p > 0 ? '▲ ' : p < 0 ? '▼ ' : '') + Math.abs(p) + '% vs semana pasada' + (sufijo || '') + '</div>';
+// Filtros (se recuerdan en este teléfono)
+const guardado = (() => { try { return JSON.parse(localStorage.getItem('filtros') || '{}'); } catch (e) { return {}; } })();
+const f = { dias: guardado.dias || 7, red: guardado.red || 'todas', orden: guardado.orden || 'vistas' };
+function cambiarFiltro(k, v) {
+  f[k] = v;
+  try { localStorage.setItem('filtros', JSON.stringify(f)); } catch (e) {}
+  pintar();
 }
 
+let datos = null;
 async function cargar(refrescar) {
   const local = new URLSearchParams(location.search).get('datos');
   let url = FUNCION + (refrescar ? '?refrescar=1' : '');
@@ -84,124 +117,264 @@ async function cargar(refrescar) {
   // Solo para probar la página en la PC: datos de un archivo local
   if (local && /^(localhost|127\.0\.0\.1)$/.test(location.hostname)) url = local;
   else if (!tg || !tg.initData) { app.innerHTML = '<div class="aviso">Ábrelo desde el botón <b>Métricas</b> de tu bot de Telegram.</div>'; return; }
+  if (datos) document.getElementById('act').textContent = 'actualizando…';
   try {
     const r = await fetch(url, op);
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || r.status);
-    pintar(d);
+    if (d.version !== 2) throw new Error('La función de la nube es la versión anterior: falta desplegar la nueva (npx supabase@2 functions deploy metricas …)');
+    datos = d;
+    // Las gráficas miden el texto al dibujarse: con la letra todavía cargando, las etiquetas salen cortadas
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    pintar();
   } catch (e) {
     app.innerHTML = '<div class="aviso">No pude traer los números.<br><span class="nota">' + esc(e.message) + '</span><br><br><button onclick="cargar(true)">Reintentar</button></div>';
   }
 }
 
+function cambio(actual, antes) {
+  if (actual == null || !antes) return '<div class="cambio igual">sin periodo anterior</div>';
+  const p = Math.round(((actual - antes) / antes) * 100);
+  const c = p > 0 ? 'sube' : p < 0 ? 'baja' : 'igual';
+  return '<div class="cambio ' + c + '">' + (p > 0 ? '▲ ' : p < 0 ? '▼ ' : '') + Math.abs(p) + '% vs ' + f.dias + ' días antes</div>';
+}
+
+// Seguidores al inicio del periodo, del historial diario (null si todavía no hay tantos días guardados)
+function seguidoresAl(red, t) {
+  const dia = diaMx(t);
+  const antes = datos.seguidores.filter((s) => s.fecha <= dia && s[red] != null);
+  return antes.length ? antes[antes.length - 1][red] : null;
+}
+
 const graficas = [];
-function pintar(d) {
+function pintar() {
   graficas.forEach((g) => g.destroy());
   graficas.length = 0;
-  const s = d.semana, a = d.anterior;
-  const reels = d.reels.filter((r) => r.tipo === 'reel' && r.vistas != null).sort((x, y) => new Date(x.fecha) - new Date(y.fecha));
-  const conRet = reels.filter((r) => r.retencion != null);
-  const visto = conRet.length >= 2;
-  const promSeg = reels.filter((r) => r.vistoSeg != null);
-  const segProm = promSeg.length ? Math.round((promSeg.reduce((t, r) => t + r.vistoSeg, 0) / promSeg.length) * 10) / 10 : null;
-  const hace = Math.round((Date.now() - new Date(d.actualizado)) / 60000);
-  const e = d.embudo || {};
-  const yt = d.youtube && !d.youtube.error ? d.youtube : null;
+  const d = datos;
+  const ahora = Date.now();
+  const desde = ahora - f.dias * DIA;
+  const redesSel = f.red === 'todas' ? ['ig', 'yt', 'tt'] : [f.red];
+  const conDatos = (v) => v.vistas != null;
+  const enRango = (v, a, b) => { const t = new Date(v.fecha).getTime(); return t >= a && t < b; };
+  const todos = d.videos.filter((v) => redesSel.includes(v.red) && conDatos(v));
+  const vids = todos.filter((v) => enRango(v, desde, ahora + 1));
+  const antes = todos.filter((v) => enRango(v, desde - f.dias * DIA, desde));
+  const verIg = redesSel.includes('ig');
+  const igReels = vids.filter((v) => v.red === 'ig' && v.tipo === 'reel');
+  const hace = Math.round((ahora - new Date(d.actualizado)) / 60000);
+
+  // Seguidores de las redes elegidas que tienen número
+  const conSeg = redesSel.filter((r) => d.redes[r] && d.redes[r].seguidores != null);
+  const segHoy = conSeg.reduce((a, r) => a + d.redes[r].seguidores, 0);
+  const segAntes = conSeg.map((r) => seguidoresAl(r, desde));
+  const nuevos = conSeg.length && segAntes.every((x) => x != null) ? segHoy - segAntes.reduce((a, b) => a + b, 0) : null;
+
+  const vistas = suma(vids, 'vistas');
+  const promV = vids.length ? vistas / vids.length : null;
+  const promAntes = antes.length ? suma(antes, 'vistas') / antes.length : null;
+  const conComp = vids.filter((v) => v.compartidos != null);
+  const desglose = (fn) => (f.red === 'todas' ? '<div class="desglose">' + ['ig', 'yt', 'tt'].filter((r) => d.redes[r].conectado).map((r) => '<span>' + punto(r) + fn(r) + '</span>').join('') + '</div>' : '');
+
+  // Avisos de redes sin conectar o con error, solo de las elegidas
+  const avisos = redesSel.filter((r) => r !== 'ig').map((r) => {
+    const x = d.redes[r];
+    if (!x.conectado) return r === 'tt' ? 'TikTok todavía no está conectado a la nube: en la PC que tiene la clave de la app, <b>npm run tiktok:conectar</b> y luego <b>npm run nube:secretos</b>.' : 'YouTube no está conectado a la nube: <b>npm run nube:secretos</b> en la PC que tiene YouTube.';
+    if (x.error) return REDES[r].nombre + ': ' + esc(x.error);
+    return null;
+  }).filter(Boolean);
+
+  const chip = (k, v, texto, extra) => '<button class="chip' + (f[k] === v ? ' on' : '') + '" onclick="cambiarFiltro(\'' + k + '\',' + (typeof v === 'number' ? v : "'" + v + "'") + ')">' + (extra || '') + texto + '</button>';
 
   app.innerHTML =
-    '<header><img src="../logo.png" alt=""><h1>RADAR <span>GEEK</span></h1><div class="act">' + (hace < 1 ? 'recién actualizado' : 'hace ' + hace + ' min') + '<br><button onclick="cargar(true)">Actualizar</button></div></header>' +
-    '<div class="rejilla">' +
-      '<div class="tarjeta dato"><div class="etq">Vistas · 7 días</div><div class="num">' + miles(s.vistas) + '</div>' + cambio(s.vistas, a.vistas) + '</div>' +
-      '<div class="tarjeta dato"><div class="etq">Seguidores</div><div class="num">' + miles(d.cuenta.seguidores) + '</div><div class="cambio ' + (e.nuevos > 0 ? 'sube' : 'igual') + '">' + (e.nuevos == null ? 'la tendencia se llena día a día' : (e.nuevos >= 0 ? '+' : '') + e.nuevos + ' en 7 días') + '</div></div>' +
-      '<div class="tarjeta dato"><div class="etq">' + (visto ? '% del reel visto' : 'Segundos vistos') + '</div><div class="num">' + (visto ? s.retencion + '%' : (segProm ?? '–') + ' s') + '</div><div class="cambio igual">' + (visto ? 'promedio de la semana' : 'promedio por reel') + '</div></div>' +
-      '<div class="tarjeta dato"><div class="etq">Compartidos · 7 días</div><div class="num">' + miles(s.compartidos) + '</div>' + cambio(s.compartidos, a.compartidos) + '</div>' +
+    '<header><img src="../logo.png" alt=""><h1>RADAR <span>GEEK</span></h1><div class="act"><span id="act">' + (hace < 1 ? 'recién actualizado' : 'hace ' + hace + ' min') + '</span><br><button onclick="cargar(true)">Actualizar</button></div></header>' +
+    '<div class="filtros">' +
+      '<div class="chips">' + chip('dias', 7, '7 días') + chip('dias', 30, '30 días') + chip('dias', 90, '90 días') + '</div>' +
+      '<div class="chips">' + chip('red', 'todas', 'Todas') + chip('red', 'ig', 'Instagram', punto('ig')) + chip('red', 'yt', 'YouTube', punto('yt')) + chip('red', 'tt', 'TikTok', punto('tt')) + '</div>' +
     '</div>' +
-    '<h2>Embudo de seguidores <small>· 7 días</small></h2><div class="tarjeta embudo" id="embudo"></div>' +
-    '<h2>Vistas por reel <small>· toca una barra</small></h2><div class="tarjeta"><div class="grafica"><canvas id="gVistas"></canvas></div><div class="detalle" id="detalle"></div></div>' +
-    '<h2>' + (visto ? '% del reel que vio la gente' : 'Segundos que vio la gente') + ' <small>· el gancho se mide aquí</small></h2><div class="tarjeta"><div class="grafica"><canvas id="gRet"></canvas></div></div>' +
-    '<h2>Mejor hora <small>· vistas promedio</small></h2><div class="tarjeta"><div class="grafica" style="height:170px"><canvas id="gHora"></canvas></div></div>' +
-    '<h2>Seguidores</h2><div class="tarjeta"><div class="grafica" style="height:160px"><canvas id="gSeg"></canvas></div>' + (d.seguidores.length < 3 ? '<p class="nota">La gráfica se llena con un punto por día.</p>' : '') + '</div>' +
-    '<h2>Instagram contra YouTube <small>· 30 días</small></h2><div class="tarjeta" id="yt"></div>' +
-    '<h2>Qué mejorar</h2><div class="tarjeta consejos">' + (d.consejos && d.consejos.length ? d.consejos.map((c) => '<p>' + esc(c) + '</p>').join('') : '<p class="nota">Se genera una vez al día con tus números.</p>') + '</div>' +
-    '<h2>Lo más visto <small>· 30 días</small></h2><div class="tarjeta lista">' +
-      [...reels].sort((x, y) => y.vistas - x.vistas).slice(0, 8).map((r) => '<div class="fila" data-link="' + esc(r.permalink) + '"><span class="t">' + esc(r.gancho || r.titulo) + '</span><span class="v">' + miles(r.vistas) + '</span></div>').join('') +
-    '</div>';
+    (avisos.length ? '<div class="tarjeta" style="margin-bottom:10px">' + avisos.map((a) => '<p class="nota">' + a + '</p>').join('') + '</div>' : '') +
+    '<div class="rejilla">' +
+      '<div class="tarjeta dato"><div class="etq">Vistas</div><div class="num">' + miles(vistas) + '</div>' + cambio(vistas, suma(antes, 'vistas')) + desglose((r) => miles(suma(vids.filter((v) => v.red === r), 'vistas'))) + '</div>' +
+      '<div class="tarjeta dato"><div class="etq">Seguidores</div><div class="num">' + (conSeg.length ? miles(segHoy) : '–') + '</div><div class="cambio ' + (nuevos > 0 ? 'sube' : nuevos < 0 ? 'baja' : 'igual') + '">' + (nuevos == null ? 'el cambio se llena día a día' : (nuevos >= 0 ? '+' : '') + nuevos + ' en ' + f.dias + ' días') + '</div>' + desglose((r) => miles(d.redes[r].seguidores)) + '</div>' +
+      '<div class="tarjeta dato"><div class="etq">Promedio por video</div><div class="num">' + miles(promV) + '</div>' + cambio(promV, promAntes) + '<div class="desglose">' + vids.length + ' videos</div></div>' +
+      (f.red === 'yt'
+        ? '<div class="tarjeta dato"><div class="etq">Likes</div><div class="num">' + miles(suma(vids, 'likes')) + '</div>' + cambio(suma(vids, 'likes'), suma(antes, 'likes')) + '</div>'
+        : '<div class="tarjeta dato"><div class="etq">Compartidos</div><div class="num">' + miles(suma(conComp, 'compartidos')) + '</div>' + cambio(suma(conComp, 'compartidos'), suma(antes, 'compartidos')) + desglose((r) => (r === 'yt' ? 'n/d' : miles(suma(vids.filter((v) => v.red === r), 'compartidos')))) + '</div>') +
+    '</div>' +
+    '<h2>Qué mejorar <small>· lo escribe Claude cada día con 30 días de números</small></h2><div class="tarjeta" id="consejos"></div>' +
+    '<h2>Lo que dicen tus números <small>· ' + f.dias + ' días</small></h2><div class="tarjeta" id="hallazgos"></div>' +
+    '<h2>Vistas por día</h2><div class="tarjeta"><div class="grafica" style="height:190px"><canvas id="gDia"></canvas></div>' + (f.red === 'todas' ? '<div class="leyenda">' + ['ig', 'yt', 'tt'].filter((r) => vids.some((v) => v.red === r)).map((r) => '<span>' + punto(r) + REDES[r].nombre + '</span>').join('') + '</div>' : '') + '</div>' +
+    (verIg ? '<h2>Embudo de Instagram <small>· ' + f.dias + ' días</small></h2><div class="tarjeta embudo" id="embudo"></div>' : '') +
+    '<h2>Vistas por video <small>· toca una barra</small></h2><div class="tarjeta"><div class="grafica"><canvas id="gVistas"></canvas></div><div class="detalle" id="detalle"></div></div>' +
+    (verIg && igReels.some((r) => r.vistoSeg != null) ? '<h2>Cuánto vio la gente <small>· Instagram, el gancho se mide aquí</small></h2><div class="tarjeta"><div class="grafica"><canvas id="gRet"></canvas></div></div>' : '') +
+    '<h2>Mejor hora <small>· vistas promedio por video</small></h2><div class="tarjeta"><div class="grafica" style="height:150px"><canvas id="gHora"></canvas></div></div>' +
+    (f.red === 'todas' ? '<h2>Redes <small>· vistas promedio por video</small></h2><div class="tarjeta"><div class="grafica" style="height:140px"><canvas id="gRedes"></canvas></div></div>' : '') +
+    '<h2>Seguidores</h2><div class="tarjeta"><div class="grafica" style="height:170px"><canvas id="gSeg"></canvas></div>' + (d.seguidores.length < 3 ? '<p class="nota">La gráfica se llena con un punto por día.</p>' : '') + '</div>' +
+    '<h2>Videos <small>· ' + f.dias + ' días</small></h2><div class="tarjeta lista"><div class="chips">' +
+      chip('orden', 'vistas', 'Más vistas') + chip('orden', 'compartidos', 'Más compartidos') + chip('orden', 'vistoSeg', 'Más tiempo visto') + chip('orden', 'likes', 'Más likes') + chip('orden', 'fecha', 'Recientes') +
+    '</div><div id="lista"></div></div>';
 
-  // Embudo: barras que se angostan con el % de cada paso
-  const pasos = [['cuentas alcanzadas', e.alcance], ['abrieron tu perfil', e.perfil], ['te siguieron', e.nuevos]];
+  pintarConsejos();
+  pintarHallazgos(vids, igReels);
+  pintarLista(vids);
+  if (verIg) pintarEmbudo();
+
+  Chart.defaults.color = '#9aa3af';
+  Chart.defaults.font.family = 'Montserrat, system-ui, sans-serif';
+  Chart.defaults.borderColor = '#222a35';
+  const corto = (v) => (v >= 1000 ? (v / 1000).toLocaleString('es-MX', { maximumFractionDigits: 1 }) + 'k' : v);
+  const comun = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 6 } }, y: { beginAtZero: true, ticks: { callback: corto } } } };
+  const horizontal = { ...comun, indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { callback: corto } }, y: { grid: { display: false } } } };
+
+  // Vistas por día, apiladas por red (las vistas se cuentan el día que se publicó cada video)
+  const dias = [];
+  for (let t = desde; t <= ahora; t += DIA) dias.push(diaMx(t));
+  const porDia = (r) => dias.map((dia) => suma(vids.filter((v) => v.red === r && diaMx(new Date(v.fecha).getTime()) === dia), 'vistas'));
+  graficas.push(new Chart(document.getElementById('gDia'), {
+    type: 'bar',
+    data: { labels: dias.map((x) => new Date(x + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })), datasets: redesSel.map((r) => ({ label: REDES[r].nombre, data: porDia(r), backgroundColor: REDES[r].color, borderRadius: 3, stack: 'v' })) },
+    options: { ...comun, plugins: { legend: { display: false }, tooltip: { mode: 'index' } }, scales: { x: { ...comun.scales.x, stacked: true }, y: { ...comun.scales.y, stacked: true } } },
+  }));
+
+  // Vistas por video, en orden de publicación y del color de su red
+  const enOrden = [...vids].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+  graficas.push(new Chart(document.getElementById('gVistas'), {
+    type: 'bar',
+    data: { labels: enOrden.map((v) => fechaCorta(v.fecha)), datasets: [{ data: enOrden.map((v) => v.vistas), backgroundColor: enOrden.map((v) => REDES[v.red].color), borderRadius: 4 }] },
+    options: { ...comun, interaction: { mode: 'index', intersect: false }, onClick: (_, el) => el.length && detalle(enOrden[el[0].index]) },
+  }));
+
+  // Retención de Instagram: % visto si se sabe la duración, si no, segundos
+  const ret = igReels.filter((r) => r.vistoSeg != null).sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+  if (ret.length) {
+    const visto = ret.filter((r) => r.retencion != null).length >= ret.length * 0.6;
+    const medida = (r) => (visto ? r.retencion : r.vistoSeg);
+    const conM = ret.filter((r) => medida(r) != null);
+    const pm = prom(conM.map(medida));
+    graficas.push(new Chart(document.getElementById('gRet'), {
+      data: {
+        labels: conM.map((r) => fechaCorta(r.fecha)),
+        datasets: [
+          { type: 'bar', data: conM.map(medida), backgroundColor: conM.map((r) => (medida(r) >= pm ? '#c6ff3d' : '#4a5563')), borderRadius: 4 },
+          { type: 'line', data: conM.map(() => pm), borderColor: '#ff6b6b', borderDash: [5, 4], pointRadius: 0, borderWidth: 2 },
+        ],
+      },
+      options: { ...comun, interaction: { mode: 'index', intersect: false }, onClick: (_, el) => el.length && detalle(conM[el[0].index]), scales: { ...comun.scales, y: { beginAtZero: true, ticks: { callback: (v) => v + (visto ? '%' : ' s') } } } },
+    }));
+  }
+
+  // Mejor hora: 2 pm, 6 pm u otra (hora del centro de México)
+  const grupos = horas(vids);
+  graficas.push(new Chart(document.getElementById('gHora'), {
+    type: 'bar',
+    data: { labels: grupos.map((g) => g.nombre + ' (' + g.n + ')'), datasets: [{ data: grupos.map((g) => g.prom), backgroundColor: '#c6ff3d', borderRadius: 6 }] },
+    options: horizontal,
+  }));
+
+  if (f.red === 'todas') {
+    const rs = ['ig', 'yt', 'tt'].filter((r) => vids.some((v) => v.red === r));
+    graficas.push(new Chart(document.getElementById('gRedes'), {
+      type: 'bar',
+      data: { labels: rs.map((r) => REDES[r].nombre + ' (' + vids.filter((v) => v.red === r).length + ')'), datasets: [{ data: rs.map((r) => prom(vids.filter((v) => v.red === r).map((v) => v.vistas))), backgroundColor: rs.map((r) => REDES[r].color), borderRadius: 6 }] },
+      options: horizontal,
+    }));
+  }
+
+  // Seguidores por día de cada red elegida, desde el inicio del periodo
+  const hist = d.seguidores.filter((s) => s.fecha >= diaMx(desde));
+  graficas.push(new Chart(document.getElementById('gSeg'), {
+    type: 'line',
+    data: {
+      labels: hist.map((x) => new Date(x.fecha + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })),
+      datasets: redesSel.filter((r) => hist.some((x) => x[r] != null)).map((r) => ({ label: REDES[r].nombre, data: hist.map((x) => x[r] ?? null), borderColor: REDES[r].color, backgroundColor: REDES[r].color, tension: 0.3, pointRadius: 3, spanGaps: true })),
+    },
+    options: { ...comun, plugins: { legend: { display: redesSel.length > 1, labels: { boxWidth: 10, boxHeight: 10 } } }, scales: { ...comun.scales, y: { beginAtZero: false, ticks: { precision: 0 } } } },
+  }));
+}
+
+function horas(vids) {
+  const g = { '2 pm': [], '6 pm': [], otras: [] };
+  vids.forEach((v) => { const t = horaMx(v.fecha); const h = t.getUTCHours() + t.getUTCMinutes() / 60; g[Math.abs(h - 14) <= 1 ? '2 pm' : Math.abs(h - 18) <= 1 ? '6 pm' : 'otras'].push(v.vistas); });
+  return Object.entries(g).filter(([, l]) => l.length).map(([nombre, l]) => ({ nombre, n: l.length, prom: prom(l) }));
+}
+
+function pintarConsejos() {
+  const c = datos.consejos || {};
+  const caja = document.getElementById('consejos');
+  if (!c.lista || !c.lista.length) { caja.innerHTML = '<p class="nota">' + esc(c.error || 'Todavía no hay consejos.') + '</p>'; return; }
+  caja.innerHTML = c.lista.map((x) => '<div class="consejo"><b>' + esc(x.accion) + '</b><p>' + esc(x.porque) + '</p>' + (x.ejemplo ? '<div class="prueba"><em>Prueba:</em> ' + esc(x.ejemplo) + '</div>' : '') + '</div>').join('') +
+    (c.error ? '<p class="nota">' + esc(c.error) + ' (se muestran los del ' + esc(c.fecha) + ')</p>' : '');
+}
+
+// Lo que se calcula aquí mismo con el filtro elegido: comparaciones con números, sin inventar nada
+function pintarHallazgos(vids, igReels) {
+  const h = [];
+  const gancho = (v) => '“' + esc((v.gancho || v.titulo || '').slice(0, 70)) + '”';
+  const grupos = horas(vids).filter((g) => g.nombre !== 'otras' && g.n >= 2).sort((a, b) => b.prom - a.prom);
+  if (grupos.length === 2 && grupos[0].prom > grupos[1].prom * 1.15) h.push(['🕑', 'Lo de las <b>' + grupos[0].nombre + '</b> promedia <b>' + miles(grupos[0].prom) + '</b> vistas; lo de las ' + grupos[1].nombre + ', ' + miles(grupos[1].prom) + ' (' + grupos[0].n + ' y ' + grupos[1].n + ' videos).']);
+  const conSeg = igReels.filter((r) => r.vistoSeg != null && r.vistas >= 100).sort((a, b) => b.vistoSeg - a.vistoSeg);
+  if (conSeg.length >= 4) {
+    const a = conSeg[0], z = conSeg[conSeg.length - 1];
+    h.push(['🪝', 'El gancho que más retuvo: ' + gancho(a) + ' (<b>' + a.vistoSeg + ' s</b>). El que menos: ' + gancho(z) + ' (' + z.vistoSeg + ' s). Copia la forma del primero.']);
+  }
+  const porComp = vids.filter((v) => v.compartidos && v.vistas >= 150).sort((a, b) => b.compartidos / b.vistas - a.compartidos / a.vistas);
+  if (porComp.length) {
+    const a = porComp[0];
+    h.push(['📤', gancho(a) + ' se compartió <b>1 de cada ' + Math.round(a.vistas / a.compartidos) + '</b> vistas (' + a.compartidos + ' veces): es el tipo de noticia que la gente manda.']);
+  }
+  const cIg = datos.cuentaIg[f.dias];
+  if (vids.some((v) => v.red === 'ig') && cIg && cIg.alcance && cIg.perfil != null) {
+    const p = (cIg.perfil / cIg.alcance) * 100;
+    if (p < 1) h.push(['👤', 'De <b>' + miles(cIg.alcance) + '</b> cuentas que te vieron, solo <b>' + miles(cIg.perfil) + '</b> abrieron tu perfil (' + p.toLocaleString('es-MX', { maximumFractionDigits: 2 }) + '%). Un cierre que invite a ver más (“mañana sigue…”) o una serie fija ayuda a que entren.']);
+  }
+  if (f.red === 'todas') {
+    const rs = ['ig', 'yt', 'tt'].map((r) => ({ r, l: vids.filter((v) => v.red === r) })).filter((x) => x.l.length >= 2).map((x) => ({ r: x.r, p: prom(x.l.map((v) => v.vistas)) })).sort((a, b) => b.p - a.p);
+    if (rs.length >= 2) h.push(['📊', '<b>' + REDES[rs[0].r].nombre + '</b> da ' + miles(rs[0].p) + ' vistas por video; ' + rs.slice(1).map((x) => REDES[x.r].nombre + ' ' + miles(x.p)).join(', ') + '.']);
+  }
+  const propia = igReels.filter((r) => r.voz === 'propia' && r.vistoSeg != null), sint = igReels.filter((r) => r.voz === 'sintetica' && r.vistoSeg != null);
+  if (propia.length >= 3 && sint.length >= 3) h.push(['🎙️', 'Con tu voz la gente ve <b>' + prom(propia.map((r) => r.vistoSeg)).toFixed(1) + ' s</b> en promedio; con la sintética, ' + prom(sint.map((r) => r.vistoSeg)).toFixed(1) + ' s (' + propia.length + ' y ' + sint.length + ' reels).']);
+  if (f.dias <= 30) {
+    const conPub = new Set(vids.filter((v) => v.red === 'ig').map((v) => diaMx(new Date(v.fecha).getTime())));
+    const primero = Math.min(...datos.videos.filter((v) => v.red === 'ig').map((v) => new Date(v.fecha).getTime()));
+    let vacios = 0;
+    for (let t = Math.max(Date.now() - f.dias * DIA, primero); t < Date.now() - DIA; t += DIA) if (!conPub.has(diaMx(t))) vacios++;
+    if (vacios) h.push(['📅', vacios + (vacios === 1 ? ' día' : ' días') + ' sin publicar en Instagram en este periodo.']);
+  }
+  document.getElementById('hallazgos').innerHTML = h.length ? h.map(([i, t]) => '<div class="hallazgo"><span class="ico">' + i + '</span><span>' + t + '</span></div>').join('') : '<p class="nota">Con este filtro todavía hay pocos videos para comparar.</p>';
+}
+
+function pintarEmbudo() {
+  const e = datos.cuentaIg[f.dias] || {};
+  const nuevos = (() => { const a = seguidoresAl('ig', Date.now() - f.dias * DIA); return a == null ? null : datos.redes.ig.seguidores - a; })();
+  const pasos = [['cuentas alcanzadas' + (e.aprox ? ' (aprox.)' : ''), e.alcance], ['abrieron tu perfil', e.perfil], ['te siguieron', nuevos]];
   const maximo = e.alcance || 1;
   document.getElementById('embudo').innerHTML = pasos.map(([n, v], i) => {
     const ancho = v == null ? 0 : Math.max(8, Math.round((Math.log10(Math.max(v, 1) + 1) / Math.log10(maximo + 1)) * 100));
     const pct = i && v != null && pasos[i - 1][1] ? ' · ' + ((v / pasos[i - 1][1]) * 100).toLocaleString('es-MX', { maximumFractionDigits: 2 }) + '%' : '';
     return '<div class="paso"><div class="barra" style="width:' + ancho + '%">' + (v == null ? '–' : miles(v)) + '</div><span class="etq">' + n + pct + '</span></div>';
-  }).join('') + (e.alcance && e.perfil != null && e.perfil / e.alcance < 0.01 ? '<p class="nota">Menos de 1 de cada 100 personas que ven un reel abre tu perfil: ahí está lo que hay que mejorar.</p>' : '');
-
-  Chart.defaults.color = '#9aa3af';
-  Chart.defaults.font.family = 'Montserrat, system-ui, sans-serif';
-  Chart.defaults.borderColor = '#222a35';
-  const etiquetas = reels.map((r) => fechaCorta(r.fecha));
-  const corto = (v) => (v >= 1000 ? (v / 1000).toLocaleString('es-MX', { maximumFractionDigits: 1 }) + 'k' : v);
-  const comun = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 6 } }, y: { beginAtZero: true, ticks: { callback: corto } } } };
-
-  graficas.push(new Chart(document.getElementById('gVistas'), {
-    type: 'bar',
-    data: { labels: etiquetas, datasets: [{ data: reels.map((r) => r.vistas), backgroundColor: reels.map((r) => (r.voz === 'propia' ? '#7aa7ff' : '#c6ff3d')), borderRadius: 5 }] },
-    options: { ...comun, interaction: { mode: 'index', intersect: false }, onClick: (_, el) => el.length && detalle(reels[el[0].index]) },
-  }));
-  const medida = (r) => (visto ? r.retencion : r.vistoSeg);
-  const ret = reels.filter((r) => medida(r) != null);
-  const prom = ret.length ? ret.reduce((t, r) => t + medida(r), 0) / ret.length : 0;
-  graficas.push(new Chart(document.getElementById('gRet'), {
-    data: {
-      labels: ret.map((r) => fechaCorta(r.fecha)),
-      datasets: [
-        { type: 'bar', data: ret.map(medida), backgroundColor: ret.map((r) => (medida(r) >= prom ? '#c6ff3d' : '#4a5563')), borderRadius: 5 },
-        { type: 'line', data: ret.map(() => prom), borderColor: '#ff6b6b', borderDash: [5, 4], pointRadius: 0, borderWidth: 2 },
-      ],
-    },
-    options: { ...comun, scales: { ...comun.scales, y: { beginAtZero: true, ticks: { callback: (v) => v + (visto ? '%' : ' s') } } } },
-  }));
-  // Hora del centro de México de cada reel: alrededor de las 2 o de las 6, o a otra hora
-  const grupos = { '2 pm': [], '6 pm': [], 'otras': [] };
-  reels.forEach((r) => { const h = horaMx(r.fecha).getUTCHours() + horaMx(r.fecha).getUTCMinutes() / 60; grupos[Math.abs(h - 14) <= 1 ? '2 pm' : Math.abs(h - 18) <= 1 ? '6 pm' : 'otras'].push(r.vistas); });
-  const conHora = Object.entries(grupos).filter(([, l]) => l.length);
-  graficas.push(new Chart(document.getElementById('gHora'), {
-    type: 'bar',
-    data: { labels: conHora.map(([n, l]) => n + ' (' + l.length + ')'), datasets: [{ data: conHora.map(([, l]) => l.reduce((t, v) => t + v, 0) / l.length), backgroundColor: '#c6ff3d', borderRadius: 6 }] },
-    options: { ...comun, indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { callback: corto } }, y: { grid: { display: false } } } },
-  }));
-  graficas.push(new Chart(document.getElementById('gSeg'), {
-    type: 'line',
-    data: { labels: d.seguidores.map((x) => new Date(x.fecha + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })), datasets: [{ data: d.seguidores.map((x) => x.n), borderColor: '#c6ff3d', backgroundColor: 'rgba(198,255,61,.12)', fill: true, tension: 0.3, pointRadius: 3 }] },
-    options: { ...comun, scales: { ...comun.scales, y: { beginAtZero: false, ticks: { precision: 0 } } } },
-  }));
-
-  // Instagram contra YouTube en 30 días
-  const ig30 = reels.reduce((t, r) => t + r.vistas, 0);
-  const ytCaja = document.getElementById('yt');
-  if (!yt) ytCaja.innerHTML = '<p class="nota">' + (d.youtube && d.youtube.error ? 'YouTube: ' + esc(d.youtube.error) : 'Para ver YouTube aquí, falta darle su permiso a la nube (npm run nube:secretos en la PC de casa).') + '</p>';
-  else {
-    const yt30 = yt.videos.reduce((t, v) => t + v.vistas, 0);
-    ytCaja.innerHTML = '<div class="grafica" style="height:120px"><canvas id="gYt"></canvas></div><p class="nota">' + yt.suscriptores + ' suscriptores · ' + yt.videos.length + ' Shorts públicos</p>' +
-      yt.videos.sort((x, y) => y.vistas - x.vistas).slice(0, 3).map((v) => '<div class="lista"><div class="fila"><span class="t">' + esc(v.titulo) + '</span><span class="v">' + miles(v.vistas) + '</span></div></div>').join('');
-    graficas.push(new Chart(document.getElementById('gYt'), {
-      type: 'bar',
-      data: { labels: ['Instagram', 'YouTube'], datasets: [{ data: [ig30, yt30], backgroundColor: ['#c6ff3d', '#ff6b6b'], borderRadius: 6 }] },
-      options: { ...comun, indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { callback: corto } }, y: { grid: { display: false } } } },
-    }));
-  }
-
-  app.querySelectorAll('[data-link]').forEach((f) => f.addEventListener('click', () => abrir(f.dataset.link)));
+  }).join('') + (nuevos == null ? '<p class="nota">Los seguidores nuevos aparecen cuando la nube tenga guardado el número de hace ' + f.dias + ' días.</p>' : '');
 }
 
-function detalle(r) {
+function pintarLista(vids) {
+  const k = f.orden;
+  const valor = (v) => (k === 'fecha' ? new Date(v.fecha).getTime() : v[k]);
+  const lista = vids.filter((v) => valor(v) != null).sort((a, b) => valor(b) - valor(a)).slice(0, 15);
+  const mostrar = (v) => (k === 'compartidos' ? miles(v.compartidos) + ' ↗' : k === 'vistoSeg' ? v.vistoSeg + ' s' : k === 'likes' ? miles(v.likes) + ' ♥' : miles(v.vistas));
+  const caja = document.getElementById('lista');
+  caja.innerHTML = lista.length ? lista.map((v, i) => '<div class="fila" data-i="' + i + '">' + punto(v.red) + '<span class="t">' + esc(v.gancho || v.titulo) + '</span><span class="f">' + fechaCorta(v.fecha) + '</span><span class="v">' + mostrar(v) + '</span></div>').join('') : '<p class="nota">' + (k === 'vistoSeg' ? 'Solo Instagram da el tiempo visto.' : k === 'compartidos' ? 'YouTube no da compartidos.' : 'Sin videos en este periodo.') + '</p>';
+  caja.querySelectorAll('.fila').forEach((fila) => fila.addEventListener('click', () => detalle(lista[fila.dataset.i], true)));
+}
+
+function detalle(v, abrirYa) {
+  if (abrirYa) return abrir(v.enlace);
   const c = document.getElementById('detalle');
   c.className = 'detalle ver';
-  c.innerHTML = (r.miniatura ? '<img src="' + esc(r.miniatura) + '" alt="">' : '') +
-    '<div><b>' + esc(r.gancho || r.titulo) + '</b><div class="nums">' + fechaCorta(r.fecha) + ' · ' + miles(r.vistas) + ' vistas · ' + miles(r.likes) + ' likes · ' + miles(r.compartidos) + ' compartidos · ' + miles(r.guardados) + ' guardados<br>' +
-    (r.vistoSeg != null ? r.vistoSeg + ' s vistos' + (r.retencion != null ? ' de ' + r.duracion + ' s (' + r.retencion + '%)' : '') : '') + (r.voz === 'propia' ? ' · con tu voz' : '') + '</div>' +
-    '<a href="#" id="abrirReel">Ver en Instagram →</a></div>';
-  document.getElementById('abrirReel').addEventListener('click', (ev) => { ev.preventDefault(); abrir(r.permalink); });
+  c.innerHTML = (v.miniatura ? '<img src="' + esc(v.miniatura) + '" alt="">' : '') +
+    '<div><b>' + esc(v.gancho || v.titulo) + '</b><div class="nums">' + punto(v.red) + ' ' + REDES[v.red].nombre + ' · ' + fechaCorta(v.fecha) + ' ' + horaMx(v.fecha).toISOString().slice(11, 16) + '<br>' + miles(v.vistas) + ' vistas · ' + miles(v.likes) + ' likes' + (v.compartidos != null ? ' · ' + miles(v.compartidos) + ' compartidos' : '') + (v.guardados != null ? ' · ' + miles(v.guardados) + ' guardados' : '') +
+    (v.vistoSeg != null ? '<br>' + v.vistoSeg + ' s vistos' + (v.retencion != null ? ' de ' + v.duracion + ' s (' + v.retencion + '%)' : '') : '') + (v.voz === 'propia' ? ' · con tu voz' : '') + '</div>' +
+    (v.enlace ? '<a href="#" id="abrirVideo">Ver en ' + REDES[v.red].nombre + ' →</a>' : '') + '</div>';
+  const a = document.getElementById('abrirVideo');
+  if (a) a.addEventListener('click', (ev) => { ev.preventDefault(); abrir(v.enlace); });
+  c.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 cargar(false);
