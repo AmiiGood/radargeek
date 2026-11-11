@@ -291,9 +291,16 @@ function pintar() {
   }));
 }
 
+// La hora del centro de México de cada video: alrededor de las 2 o de las 6, o a otra hora
+function franja(v) {
+  const t = horaMx(v.fecha);
+  const h = t.getUTCHours() + t.getUTCMinutes() / 60;
+  return Math.abs(h - 14) <= 1 ? '2 pm' : Math.abs(h - 18) <= 1 ? '6 pm' : 'otras';
+}
+
 function horas(vids) {
   const g = { '2 pm': [], '6 pm': [], otras: [] };
-  vids.forEach((v) => { const t = horaMx(v.fecha); const h = t.getUTCHours() + t.getUTCMinutes() / 60; g[Math.abs(h - 14) <= 1 ? '2 pm' : Math.abs(h - 18) <= 1 ? '6 pm' : 'otras'].push(v.vistas); });
+  vids.forEach((v) => g[franja(v)].push(v.vistas));
   return Object.entries(g).filter(([, l]) => l.length).map(([nombre, l]) => ({ nombre, n: l.length, prom: prom(l) }));
 }
 
@@ -310,7 +317,17 @@ function pintarHallazgos(vids, igReels) {
   const h = [];
   const gancho = (v) => '“' + esc((v.gancho || v.titulo || '').slice(0, 70)) + '”';
   const grupos = horas(vids).filter((g) => g.nombre !== 'otras' && g.n >= 2).sort((a, b) => b.prom - a.prom);
-  if (grupos.length === 2 && grupos[0].prom > grupos[1].prom * 1.15) h.push(['🕑', 'Lo de las <b>' + grupos[0].nombre + '</b> promedia <b>' + miles(grupos[0].prom) + '</b> vistas; lo de las ' + grupos[1].nombre + ', ' + miles(grupos[1].prom) + ' (' + grupos[0].n + ' y ' + grupos[1].n + ' videos).']);
+  if (grupos.length === 2 && grupos[0].prom > grupos[1].prom * 1.15) h.push(['🕑', 'Lo de las <b>' + grupos[0].nombre + '</b> promedia <b>' + miles(grupos[0].prom) + '</b> vistas; lo de las ' + grupos[1].nombre + ', ' + miles(grupos[1].prom) + ' (' + grupos[0].n + ' y ' + grupos[1].n + ' videos). Ojo: casi siempre a las 2 pm va el tema más fuerte; el experimento de abajo separa las dos cosas.']);
+  // Experimento de horario: el tema más fuerte del día a las 2 pm contra a las 6 pm (mismo rango, distinta hora)
+  const fuertes = igReels.filter((r) => r.rango === 1);
+  if (fuertes.length) {
+    const a2 = fuertes.filter((r) => franja(r) === '2 pm'), a6 = fuertes.filter((r) => franja(r) === '6 pm');
+    h.push(['🧪', a2.length && a6.length
+      ? 'Experimento de horario: el tema más fuerte del día promedia <b>' + miles(prom(a2.map((v) => v.vistas))) + '</b> vistas a las 2 pm (' + a2.length + ') y <b>' + miles(prom(a6.map((v) => v.vistas))) + '</b> a las 6 pm (' + a6.length + ').' + (a2.length >= 4 && a6.length >= 4 ? '' : ' Todavía son pocos para concluir: sigue hasta el 25 de noviembre.')
+      : 'Experimento de horario en curso: falta tener el tema más fuerte en las dos horas para comparar.']);
+  }
+  const raros = igReels.filter((r) => r.serie === 'raro'), resto = igReels.filter((r) => r.serie !== 'raro');
+  if (raros.length) h.push(['🌀', '<b>Lo raro del día</b> promedia <b>' + miles(prom(raros.map((v) => v.vistas))) + '</b> vistas (' + raros.length + ' reels); el resto, ' + miles(prom(resto.map((v) => v.vistas))) + '.']);
   const conSeg = igReels.filter((r) => r.vistoSeg != null && r.vistas >= 100).sort((a, b) => b.vistoSeg - a.vistoSeg);
   if (conSeg.length >= 4) {
     const a = conSeg[0], z = conSeg[conSeg.length - 1];
