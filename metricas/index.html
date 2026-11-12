@@ -295,11 +295,11 @@ function pintar() {
 function franja(v) {
   const t = horaMx(v.fecha);
   const h = t.getUTCHours() + t.getUTCMinutes() / 60;
-  return Math.abs(h - 14) <= 1 ? '2 pm' : Math.abs(h - 18) <= 1 ? '6 pm' : 'otras';
+  return Math.abs(h - 11) <= 1 ? '11 am' : Math.abs(h - 14) <= 1 ? '2 pm' : Math.abs(h - 18) <= 1 ? '6 pm' : 'otras';
 }
 
 function horas(vids) {
-  const g = { '2 pm': [], '6 pm': [], otras: [] };
+  const g = { '11 am': [], '2 pm': [], '6 pm': [], otras: [] };
   vids.forEach((v) => g[franja(v)].push(v.vistas));
   return Object.entries(g).filter(([, l]) => l.length).map(([nombre, l]) => ({ nombre, n: l.length, prom: prom(l) }));
 }
@@ -317,7 +317,8 @@ function pintarHallazgos(vids, igReels) {
   const h = [];
   const gancho = (v) => '“' + esc((v.gancho || v.titulo || '').slice(0, 70)) + '”';
   const grupos = horas(vids).filter((g) => g.nombre !== 'otras' && g.n >= 2).sort((a, b) => b.prom - a.prom);
-  if (grupos.length === 2 && grupos[0].prom > grupos[1].prom * 1.15) h.push(['🕑', 'Lo de las <b>' + grupos[0].nombre + '</b> promedia <b>' + miles(grupos[0].prom) + '</b> vistas; lo de las ' + grupos[1].nombre + ', ' + miles(grupos[1].prom) + ' (' + grupos[0].n + ' y ' + grupos[1].n + ' videos). Ojo: casi siempre a las 2 pm va el tema más fuerte; el experimento de abajo separa las dos cosas.']);
+  const ult = grupos[grupos.length - 1];
+  if (grupos.length >= 2 && grupos[0].prom > ult.prom * 1.15) h.push(['🕑', 'Lo de las <b>' + grupos[0].nombre + '</b> promedia <b>' + miles(grupos[0].prom) + '</b> vistas; lo de las ' + ult.nombre + ', ' + miles(ult.prom) + ' (' + grupos[0].n + ' y ' + ult.n + ' videos). Ojo: casi siempre a las 2 pm va el tema más fuerte; el experimento de abajo separa las dos cosas.']);
   // Experimento de horario: el tema más fuerte del día a las 2 pm contra a las 6 pm (mismo rango, distinta hora)
   const fuertes = igReels.filter((r) => r.rango === 1);
   if (fuertes.length) {
